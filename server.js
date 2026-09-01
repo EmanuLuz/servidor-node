@@ -9,4 +9,14 @@ const port = 3000;
 const server = http.createServer( (req, res) => {
 
     // define o status http como 200 (ok) e o tipo de conteuúo como texto plano em utf-8
+    res.writeHead(200, {'Contentt-Type': ''});
+
+    // envia a resposta para o navegador/cliente
+    res.end('olá, alunos! O servidor Node.js está rodando com sucesso!\n');
+
+});
+
+// faz o servidor começar a escutar na porta definida
+server.listen(port, hostname, () => {
+    console.log(`Servidor rodando em http:// ${hostname}:${port}/`)
 });
