@@ -9,7 +9,7 @@ const port = 3000;
 const server = http.createServer( (req, res) => {
 
     // define o status http como 200 (ok) e o tipo de conteuúo como texto plano em utf-8
-    res.writeHead(200, {'Contentt-Type': ''});
+    res.writeHead(200, {'Contentt-Type': 'UTF-8'});
 
     // envia a resposta para o navegador/cliente
     res.end('olá, alunos! O servidor Node.js está rodando com sucesso!\n');
