@@ -1,5 +1,24 @@
 // Importa o módulo nativo 'http' do Node.js
 const http = require('http');
+const mysql = require('mysql2');
+
+// 1. confihura a conexão com o MySQL
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'morango'
+});
+
+// conecta ao banco de dados
+connection.connect( (err) => {
+    if (err) {
+        console.error('Erro ao conectar ao MsSQL:', err.stack);
+        return;
+    }
+
+    console.log('Conectado ao MySQL com sucesso!');
+});
 
 // Define o endereço (localhost) e a porta onde o servidor vai escutar
 const hostname = '127.0.0.1';
