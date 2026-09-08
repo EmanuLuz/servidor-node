@@ -1,22 +1,20 @@
-// inportar o módulo nativo 'http' do node.js
+// Importa o módulo nativo 'http' do Node.js
 const http = require('http');
 
-// definir o endereço (localhost - minha máquina local) e a porta onde o servidor vai escutar hostbame
+// Define o endereço (localhost) e a porta onde o servidor vai escutar
 const hostname = '127.0.0.1';
 const port = 3000;
 
-// cria o servidor web
-const server = http.createServer( (req, res) => {
-
-    // define o status http como 200 (ok) e o tipo de conteuúo como texto plano em utf-8
-    res.writeHead(200, {'Contentt-Type': 'UTF-8'});
-
-    // envia a resposta para o navegador/cliente
-    res.end('olá, alunos! O servidor Node.js está rodando com sucesso!\n');
-
+// Cria o servidor web
+const server = http.createServer((req, res) => {
+  // Define o status HTTP como 200 (OK) e o tipo de conteúdo como texto plano em UTF-8
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+ 
+  // Envia a resposta para o navegador/cliente
+  res.end('<h1>Olá, alunos! O servidor Node.js está rodando com sucesso!\n</h1>');
 });
 
-// faz o servidor começar a escutar na porta definida
+// Faz o servidor começar a escutar na porta definida
 server.listen(port, hostname, () => {
-    console.log(`Servidor rodando em http:// ${hostname}:${port}/`)
+  console.log(`Servidor rodando em http://${hostname}:${port}/`);
 });
