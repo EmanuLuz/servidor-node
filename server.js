@@ -70,40 +70,47 @@ app.post('/api/usuarios', (req, res) => {
 });
 
 
-// // tentando conectar o login
-// // -------- Login --------
-// app.post('/api/login', (req, res) => {
-//   const { email, senha } = req.body;
+// tentando conectar o login
+// Login
+app.post('/api/login', (req, res) => {
+  const { email, senha } = req.body;
 
-//   if (!email || !senha) {
-//     return res.status(400).json({ message: 'Informe e-mail e senha.' });
-//   }
+  if (!email || !senha) {
+    return res.status(400).json({ message: 'Informe e-mail e senha.' });
+  }
 
-//   const sql = 'SELECT * FROM usuario WHERE email = ? AND senha_hash = ?';
+  // consulta na tabela usuario
+  const sql = `
+    SELECT id_usuario, nome, email, tipo_perfil 
+    FROM usuario 
+    WHERE email = ? AND senha_hash = ?
+  `;
 
-//   connection.query(sql, [email, senha], (err, rows) => {
-//     if (err) {
-//       console.error('Erro no SELECT:', err);
-//       return res.status(500).json({ message: 'Erro no servidor.' });
-//     }
+  connection.query(sql, [email, senha], (err, rows) => {
+    if (err) {
+      console.error('Erro no SELECT do login:', err);
+      return res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
 
-//     if (rows.length === 0) {
-//       return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
-//     }
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
+    }
 
-//     const u = rows[0];
-//     res.json({
-//       message: 'Login OK',
-//       usuario: {
-//         id_usuario: u.id_usuario,
-//         nome: u.nome,
-//         email: u.email,
-//         tipo_perfil: u.tipo_perfil
-//       }
-//     });
-//   });
-// });
+    const u = rows[0];
 
+    console.log(` Login efetuado: ${u.nome} (ID: ${u.id_usuario})`);
+
+    res.json({
+      message: 'Login realizado com sucesso',
+      usuario: {
+        id_usuario: u.id_usuario,
+        nome: u.nome,
+        email: u.email,
+        tipo_perfil: u.tipo_perfil
+      }
+    });
+  });
+});
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}/`);
