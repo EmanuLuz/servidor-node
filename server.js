@@ -112,6 +112,34 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// progresso do usuário
+app.get('/api/progresso/:id_usuario', (req, res) => {
+  const { id_usuario } = req.params;
+  const sql = 'SELECT * FROM progresso_aprendizado WHERE id_usuario = ? ORDER BY data_registro DESC';
+
+  connection.query(sql, [id_usuario], (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar progresso:', err);
+      return res.status(500).json({ message: 'Erro ao buscar dados de progresso.' });
+    }
+    res.json(results);
+  });
+});
+
+// apagar um registro do histórico
+app.delete('/api/progresso/:id_progresso', (req, res) => {
+  const { id_progresso } = req.params;
+  const sql = 'DELETE FROM progresso_aprendizado WHERE id_progresso = ?';
+
+  connection.query(sql, [id_progresso], (err, result) => {
+    if (err) {
+      console.error('Erro ao excluir progresso:', err);
+      return res.status(500).json({ message: 'Erro ao apagar registro.' });
+    }
+    res.json({ message: 'Registro excluído com sucesso!' });
+  });
+});
+
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}/`);
 });
