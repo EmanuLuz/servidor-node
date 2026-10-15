@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '',
+  password: '', // certifique-se de que é o mesmo usuário que você usa no Workbench/PHPMyAdmin
   database: 'multiLinguas'
 });
 
@@ -25,18 +25,21 @@ connection.connect((err) => {
   console.log('Conectado ao MySQL com sucesso!');
 });
 
-// -------- Cadastro de usuário --------
+
+
+// cadastro de usuário
 app.post('/api/usuarios', (req, res) => {
   const {
     nome, email, senha, data_nascimento,
     faixa_etaria, tipo_perfil
   } = req.body;
 
+  // validação backend
   if (!nome || !email || !senha || !data_nascimento || !faixa_etaria || !tipo_perfil) {
     return res.status(400).json({ message: 'Preencha todos os campos obrigatórios.' });
   }
 
-  const senha_hash = senha; // TODO: usar bcrypt
+  const senha_hash = senha;
 
   const sql = `
     INSERT INTO usuario
@@ -53,8 +56,11 @@ app.post('/api/usuarios', (req, res) => {
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(409).json({ message: 'Este e-mail já está cadastrado.' });
       }
-      return res.status(500).json({ message: 'Erro ao cadastrar usuário.' });
+      return res.status(500).json({ message: 'Erro ao cadastrar usuário no banco.' });
     }
+
+    // Aparecer o id na tabela do mysql
+    console.log('✅ Usuário salvo com sucesso! ID no MySQL:', result.insertId);
 
     res.status(201).json({
       message: 'Usuário cadastrado com sucesso!',
@@ -64,39 +70,39 @@ app.post('/api/usuarios', (req, res) => {
 });
 
 
-// tentando conectar o login
-// -------- Login --------
-app.post('/api/login', (req, res) => {
-  const { email, senha } = req.body;
+// // tentando conectar o login
+// // -------- Login --------
+// app.post('/api/login', (req, res) => {
+//   const { email, senha } = req.body;
 
-  if (!email || !senha) {
-    return res.status(400).json({ message: 'Informe e-mail e senha.' });
-  }
+//   if (!email || !senha) {
+//     return res.status(400).json({ message: 'Informe e-mail e senha.' });
+//   }
 
-  const sql = 'SELECT * FROM usuario WHERE email = ? AND senha_hash = ?';
+//   const sql = 'SELECT * FROM usuario WHERE email = ? AND senha_hash = ?';
 
-  connection.query(sql, [email, senha], (err, rows) => {
-    if (err) {
-      console.error('Erro no SELECT:', err);
-      return res.status(500).json({ message: 'Erro no servidor.' });
-    }
+//   connection.query(sql, [email, senha], (err, rows) => {
+//     if (err) {
+//       console.error('Erro no SELECT:', err);
+//       return res.status(500).json({ message: 'Erro no servidor.' });
+//     }
 
-    if (rows.length === 0) {
-      return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
-    }
+//     if (rows.length === 0) {
+//       return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
+//     }
 
-    const u = rows[0];
-    res.json({
-      message: 'Login OK',
-      usuario: {
-        id_usuario: u.id_usuario,
-        nome: u.nome,
-        email: u.email,
-        tipo_perfil: u.tipo_perfil
-      }
-    });
-  });
-});
+//     const u = rows[0];
+//     res.json({
+//       message: 'Login OK',
+//       usuario: {
+//         id_usuario: u.id_usuario,
+//         nome: u.nome,
+//         email: u.email,
+//         tipo_perfil: u.tipo_perfil
+//       }
+//     });
+//   });
+// });
 
 
 app.listen(port, () => {
