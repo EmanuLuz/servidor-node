@@ -25,7 +25,23 @@ connection.connect((err) => {
   console.log('Conectado ao MySQL com sucesso!');
 });
 
+// Criação da tabela usuario no mysql
+  const createTableUsuario = `
+    CREATE TABLE IF NOT EXISTS usuario (
+      id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+      nome VARCHAR(100) NOT NULL,
+      email VARCHAR(100) NOT NULL UNIQUE,
+      senha_hash VARCHAR(255) NOT NULL,
+      data_nascimento DATE NOT NULL,
+      faixa_etaria ENUM('8_14', '15_17', 'adulto') NOT NULL,
+      tipo_perfil ENUM('aluno', 'professor', 'admin') NOT NULL DEFAULT 'aluno',
+      data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
 
+  connection.query(createTableUsuario, (err) => {
+    if (err) console.error('Erro ao criar tabela usuario:', err.stack);
+  });
 
 // cadastro de usuário
 app.post('/api/usuarios', (req, res) => {
@@ -113,6 +129,37 @@ app.post('/api/login', (req, res) => {
 });
 
 // progresso do usuário
+app.get('/api/progresso/:id_usuario', (req, res) => {
+  const { id_usuario } = req.params;
+  const sql = 'SELECT * FROM progresso_aprendizado WHERE id_usuario = ? ORDER BY data_registro DESC';
+
+  connection.query(sql, [id_usuario], (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar progresso:', err);
+      return res.status(500).json({ message: 'Erro ao buscar dados de progresso.' });
+    }
+    res.json(results);
+  });
+});
+
+// tabela do progresso
+const createTableProgresso = `
+  CREATE TABLE IF NOT EXISTS progresso_aprendizado (
+    id_progresso INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    modulo_id INT NOT NULL,
+    minutos_praticados INT DEFAULT 0,
+    licoes_concluidas INT DEFAULT 0,
+    data_registro DATE NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+  )
+`;
+
+connection.query(createTableProgresso, (err) => {
+  if (err) console.error('Erro ao criar tabela progresso_aprendizado:', err.stack);
+});
+
+// buscar progresso
 app.get('/api/progresso/:id_usuario', (req, res) => {
   const { id_usuario } = req.params;
   const sql = 'SELECT * FROM progresso_aprendizado WHERE id_usuario = ? ORDER BY data_registro DESC';
