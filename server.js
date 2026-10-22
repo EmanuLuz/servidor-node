@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // certifique-se de que é o mesmo usuário que você usa no Workbench/PHPMyAdmin
+  password: '',
   database: 'multiLinguas'
 });
 
