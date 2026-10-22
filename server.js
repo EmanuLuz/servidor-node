@@ -187,6 +187,76 @@ app.delete('/api/progresso/:id_progresso', (req, res) => {
   });
 });
 
+// tabela de vocabulario
+const createTableVocabulario = `
+  CREATE TABLE IF NOT EXISTS configuracao_vocabulario (
+    id_vocabulario INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    estilo_vocabulario ENUM('simples', 'formal', 'academico') NOT NULL DEFAULT 'simples',
+    tamanho_fonte INT DEFAULT 16,
+    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+  )
+`;
+
+connection.query(createTableVocabulario, (err) => {
+  if (err) console.error('Erro ao criar tabela configuracao_vocabulario:', err.stack);
+});
+
+// salvar preferência
+app.post('/api/vocabulario', (req, res) => {
+  const { id_usuario, estilo_vocabulario, tamanho_fonte } = req.body;
+
+  if (!id_usuario || !estilo_vocabulario || !tamanho_fonte) {
+    return res.status(400).json({ message: 'Preencha todos os campos.' });
+  }
+
+  const sql = `
+    INSERT INTO configuracao_vocabulario (id_usuario, estilo_vocabulario, tamanho_fonte)
+    VALUES (?, ?, ?)
+  `;
+
+  connection.query(sql, [id_usuario, estilo_vocabulario, tamanho_fonte], (err, result) => {
+    if (err) {
+      console.error('Erro ao salvar preferência:', err);
+      return res.status(500).json({ message: 'Erro ao salvar dados.' });
+    }
+
+    res.status(201).json({
+      message: 'Preferência salva com sucesso!',
+      id_vocabulario: result.insertId
+    });
+  });
+});
+
+// buscar histórico
+app.get('/api/vocabulario/:id_usuario', (req, res) => {
+  const { id_usuario } = req.params;
+  const sql = 'SELECT * FROM configuracao_vocabulario WHERE id_usuario = ? ORDER BY data_registro DESC';
+
+  connection.query(sql, [id_usuario], (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar preferências:', err);
+      return res.status(500).json({ message: 'Erro ao buscar dados.' });
+    }
+    res.json(results);
+  });
+});
+
+// apagar um registro
+app.delete('/api/vocabulario/:id_vocabulario', (req, res) => {
+  const { id_vocabulario } = req.params;
+  const sql = 'DELETE FROM configuracao_vocabulario WHERE id_vocabulario = ?';
+
+  connection.query(sql, [id_vocabulario], (err, result) => {
+    if (err) {
+      console.error('Erro ao excluir preferência:', err);
+      return res.status(500).json({ message: 'Erro ao apagar registro.' });
+    }
+    res.json({ message: 'Registro excluído com sucesso!' });
+  });
+});
+
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}/`);
 });
