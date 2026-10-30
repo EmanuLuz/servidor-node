@@ -189,42 +189,44 @@ app.delete('/api/progresso/:id_progresso', (req, res) => {
 
 // tabela de vocabulario
 const createTableVocabulario = `
-  CREATE TABLE IF NOT EXISTS configuracao_vocabulario (
-    id_vocabulario INT AUTO_INCREMENT PRIMARY KEY,
+  CREATE TABLE IF NOT EXISTS recomendacao_vocabulario (
+    id_recomendacao INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
-    estilo_vocabulario ENUM('simples', 'formal', 'academico') NOT NULL DEFAULT 'simples',
-    tamanho_fonte INT DEFAULT 16,
-    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    palavra_expressao VARCHAR(100) NOT NULL,
+    traducao VARCHAR(100) NOT NULL,
+    frequencia_uso INT DEFAULT 1,
+    sugerida_por_nlp BOOLEAN DEFAULT FALSE,
+    data_ultima_ocorrencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
   )
 `;
 
 connection.query(createTableVocabulario, (err) => {
-  if (err) console.error('Erro ao criar tabela configuracao_vocabulario:', err.stack);
+  if (err) console.error('Erro ao criar tabela recomendacao_vocabulario:', err.stack);
 });
 
 // salvar preferência
 app.post('/api/vocabulario', (req, res) => {
-  const { id_usuario, estilo_vocabulario, tamanho_fonte } = req.body;
+  const { id_usuario, palavra_expressao, traducao, frequencia_uso } = req.body;
 
-  if (!id_usuario || !estilo_vocabulario || !tamanho_fonte) {
-    return res.status(400).json({ message: 'Preencha todos os campos.' });
+  if (!id_usuario || !palavra_expressao || !traducao) {
+    return res.status(400).json({ message: 'Preencha os campos obrigatórios.' });
   }
 
   const sql = `
-    INSERT INTO configuracao_vocabulario (id_usuario, estilo_vocabulario, tamanho_fonte)
-    VALUES (?, ?, ?)
+    INSERT INTO recomendacao_vocabulario (id_usuario, palavra_expressao, traducao, frequencia_uso)
+    VALUES (?, ?, ?, ?)
   `;
 
-  connection.query(sql, [id_usuario, estilo_vocabulario, tamanho_fonte], (err, result) => {
+  connection.query(sql, [id_usuario, palavra_expressao, traducao, frequencia_uso || 1], (err, result) => {
     if (err) {
-      console.error('Erro ao salvar preferência:', err);
-      return res.status(500).json({ message: 'Erro ao salvar dados.' });
+      console.error('Erro ao salvar palavra:', err);
+      return res.status(500).json({ message: 'Erro ao salvar no banco.' });
     }
 
     res.status(201).json({
-      message: 'Preferência salva com sucesso!',
-      id_vocabulario: result.insertId
+      message: 'Palavra salva com sucesso!',
+      id_recomendacao: result.insertId
     });
   });
 });
@@ -232,11 +234,11 @@ app.post('/api/vocabulario', (req, res) => {
 // buscar histórico
 app.get('/api/vocabulario/:id_usuario', (req, res) => {
   const { id_usuario } = req.params;
-  const sql = 'SELECT * FROM configuracao_vocabulario WHERE id_usuario = ? ORDER BY data_registro DESC';
+  const sql = 'SELECT * FROM recomendacao_vocabulario WHERE id_usuario = ? ORDER BY data_ultima_ocorrencia DESC';
 
   connection.query(sql, [id_usuario], (err, results) => {
     if (err) {
-      console.error('Erro ao consultar preferências:', err);
+      console.error('Erro ao consultar vocabulário:', err);
       return res.status(500).json({ message: 'Erro ao buscar dados.' });
     }
     res.json(results);
@@ -244,13 +246,13 @@ app.get('/api/vocabulario/:id_usuario', (req, res) => {
 });
 
 // apagar um registro
-app.delete('/api/vocabulario/:id_vocabulario', (req, res) => {
+app.delete('/api/vocabulario/:id_recomendacao', (req, res) => {
   const { id_vocabulario } = req.params;
-  const sql = 'DELETE FROM configuracao_vocabulario WHERE id_vocabulario = ?';
+  const sql = 'DELETE FROM recomendacao_vocabulario WHERE id_recomendacao = ?';
 
-  connection.query(sql, [id_vocabulario], (err, result) => {
+  connection.query(sql, [id_recomendacao], (err, result) => {
     if (err) {
-      console.error('Erro ao excluir preferência:', err);
+      console.error('Erro ao excluir:', err);
       return res.status(500).json({ message: 'Erro ao apagar registro.' });
     }
     res.json({ message: 'Registro excluído com sucesso!' });
